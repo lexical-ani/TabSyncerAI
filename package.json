@@ -91,12 +91,7 @@
         "deb"
       ],
       "icon": "assets/icon.png",
-      "category": "Utility",
-      "desktop": {
-        "Name": "TabSyncerAI",
-        "Comment": "Multi-panel AI workspace",
-        "Categories": "Utility;Development;"
-      }
+      "category": "Utility"
     }
   }
 }
