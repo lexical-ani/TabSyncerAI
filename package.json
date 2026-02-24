@@ -14,7 +14,7 @@
     "manual-release": "node scripts/manual-release.js",
     "create-release": "node scripts/create-manual-release.js"
   },
-  "author": "TabSyncerAI Contributors",
+  "author": "TabSyncerAI Contributors <tabsyncerai@example.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -91,7 +91,8 @@
         "deb"
       ],
       "icon": "assets/icon.png",
-      "category": "Utility"
+      "category": "Utility",
+      "maintainer": "TabSyncerAI Contributors <tabsyncerai@example.com>"
     }
   }
 }
