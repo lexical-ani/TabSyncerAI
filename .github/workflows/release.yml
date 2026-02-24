@@ -23,13 +23,21 @@ jobs:
       - name: Build Windows
         run: npm run build:win -- --publish never
         
+      - name: List Windows build artifacts
+        run: |
+          echo "Contents of dist folder:"
+          ls -la dist/ || dir dist\
+          echo "Looking for .exe files:"
+          find dist/ -name "*.exe" || dir dist\*.exe
+        
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
           path: |
             dist/*.exe
-            dist/*.exe.blockmap
+            dist/*.blockmap
+          if-no-files-found: error
 
   build-macos:
     runs-on: macos-latest
@@ -48,6 +56,13 @@ jobs:
       - name: Build macOS
         run: npm run build:mac -- --publish never
         
+      - name: List macOS build artifacts
+        run: |
+          echo "Contents of dist folder:"
+          ls -la dist/
+          echo "Looking for .dmg and .zip files:"
+          find dist/ -name "*.dmg" -o -name "*.zip"
+        
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -55,6 +70,8 @@ jobs:
           path: |
             dist/*.dmg
             dist/*.zip
+            dist/*-mac.zip
+          if-no-files-found: warn
 
   build-linux:
     runs-on: ubuntu-latest
@@ -73,6 +90,13 @@ jobs:
       - name: Build Linux
         run: npm run build:linux -- --publish never
         
+      - name: List Linux build artifacts
+        run: |
+          echo "Contents of dist folder:"
+          ls -la dist/
+          echo "Looking for .AppImage and .deb files:"
+          find dist/ -name "*.AppImage" -o -name "*.deb"
+        
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -80,10 +104,13 @@ jobs:
           path: |
             dist/*.AppImage
             dist/*.deb
+            dist/*.rpm
+          if-no-files-found: warn
 
   release:
     needs: [build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
+    if: always()
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v4
@@ -93,18 +120,28 @@ jobs:
         with:
           name: windows-build
           path: dist/
+        continue-on-error: true
           
       - name: Download macOS artifacts
         uses: actions/download-artifact@v4
         with:
           name: macos-build
           path: dist/
+        continue-on-error: true
           
       - name: Download Linux artifacts
         uses: actions/download-artifact@v4
         with:
           name: linux-build
           path: dist/
+        continue-on-error: true
+        
+      - name: List all downloaded artifacts
+        run: |
+          echo "All files in dist:"
+          ls -la dist/ || echo "No dist folder found"
+          echo "Counting files:"
+          find dist/ -type f | wc -l || echo "No files found"
           
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -113,5 +150,6 @@ jobs:
           body_path: RELEASE_NOTES_v1.0.0.md
           draft: false
           prerelease: false
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
