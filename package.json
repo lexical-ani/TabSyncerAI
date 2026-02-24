@@ -67,10 +67,8 @@
       ],
       "icon": "assets/icon.icns",
       "category": "public.app-category.productivity",
-      "hardenedRuntime": true,
-      "gatekeeperAssess": false,
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist"
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
     },
     "dmg": {
       "contents": [
@@ -92,7 +90,12 @@
         "deb"
       ],
       "icon": "assets/icon.png",
-      "category": "Utility"
+      "category": "Utility",
+      "desktop": {
+        "Name": "TabSyncerAI",
+        "Comment": "Multi-panel AI workspace",
+        "Categories": "Utility;Development;"
+      }
     }
   }
 }
