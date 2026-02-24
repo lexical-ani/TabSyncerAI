@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Electron user data
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+electron-builder.env
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Code signing certificates (NEVER COMMIT THESE!)
+*.pfx
+*.p12
+*.cer
+*.crt
+*.pem
+cert.pfx
+certificate.pfx
+*.key
+build/certs/

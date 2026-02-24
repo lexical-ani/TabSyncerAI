@@ -1,0 +1,62 @@
+{
+  "panelWidth": 390,
+  "controlPanelWidth": 340,
+  "panels": [
+    {
+      "id": "gemini",
+      "label": "Gemini",
+      "url": "https://gemini.google.com/app",
+      "color": "#4285f4",
+      "enabled": true
+    },
+    {
+      "id": "chatgpt",
+      "label": "ChatGPT",
+      "url": "https://chatgpt.com",
+      "color": "#10a37f",
+      "enabled": true
+    },
+    {
+      "id": "grok",
+      "label": "Grok",
+      "url": "https://grok.x.ai",
+      "color": "#e74c3c",
+      "enabled": true
+    },
+    {
+      "id": "copilot",
+      "label": "Copilot",
+      "url": "https://copilot.microsoft.com",
+      "color": "#0078d4",
+      "enabled": true
+    },
+    {
+      "id": "perplexity",
+      "label": "Perplexity",
+      "url": "https://www.perplexity.ai",
+      "color": "#20b2aa",
+      "enabled": true
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "url": "https://claude.ai",
+      "color": "#d97706",
+      "enabled": true
+    },
+    {
+      "id": "mistral",
+      "label": "Mistral",
+      "url": "https://chat.mistral.ai",
+      "color": "#ff6b35",
+      "enabled": true
+    },
+    {
+      "id": "deepseek",
+      "label": "DeepSeek",
+      "url": "https://chat.deepseek.com",
+      "color": "#6c5ce7",
+      "enabled": true
+    }
+  ]
+}

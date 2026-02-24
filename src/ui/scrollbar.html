@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AI Wall — Scrollbar</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #111117;
+            overflow: hidden;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .scrollbar-track {
+            position: absolute;
+            top: 3px;
+            bottom: 3px;
+            left: 8px;
+            right: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .scrollbar-thumb {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            min-width: 40px;
+            border-radius: 4px;
+            background: rgba(124, 106, 239, 0.35);
+            cursor: grab;
+            /* Reduced transition time for ultra-smooth tracking */
+            transition: background 0.15s ease;
+        }
+
+        .scrollbar-thumb:hover {
+            background: rgba(124, 106, 239, 0.55);
+        }
+
+        .scrollbar-thumb.dragging {
+            background: rgba(124, 106, 239, 0.8);
+            cursor: grabbing;
+            transition: background 0.1s ease;
+        }
+
+        body.all-visible .scrollbar-track {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="scrollbar-track" id="track">
+        <div class="scrollbar-thumb" id="thumb"></div>
+    </div>
+
+    <script>
+        const track = document.getElementById('track');
+        const thumb = document.getElementById('thumb');
+
+        let scrollState = { scrollOffsetX: 0, maxScroll: 0, actualPanelWidth: 500, availableWidth: 1000, totalContentWidth: 1500, totalEnabled: 3 };
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartLeft = 0;
+
+        function update() {
+            const maxScroll = scrollState.maxScroll;
+
+            if (maxScroll <= 0) {
+                document.body.classList.add('all-visible');
+                thumb.style.width = '100%';
+                thumb.style.left = '0px';
+                return;
+            }
+            document.body.classList.remove('all-visible');
+
+            const trackW = track.getBoundingClientRect().width;
+            const thumbW = Math.max(40, (scrollState.availableWidth / scrollState.totalContentWidth) * trackW);
+            thumb.style.width = thumbW + 'px';
+
+            const frac = scrollState.scrollOffsetX / maxScroll;
+            const maxLeft = trackW - thumbW;
+
+            // Use transform instead of left for smoother rendering if possible, but left works fine for low complexity
+            thumb.style.left = (frac * maxLeft) + 'px';
+        }
+
+        // ── Drag ──
+        thumb.addEventListener('mousedown', e => {
+            isDragging = true;
+            dragStartX = e.clientX;
+            dragStartLeft = parseFloat(thumb.style.left) || 0;
+            thumb.classList.add('dragging');
+            e.preventDefault();
+        });
+
+        document.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            if (scrollState.maxScroll <= 0) return;
+
+            const trackW = track.getBoundingClientRect().width;
+            const thumbW = thumb.getBoundingClientRect().width;
+            const maxLeft = trackW - thumbW;
+            let newLeft = Math.max(0, Math.min(maxLeft, dragStartLeft + (e.clientX - dragStartX)));
+
+            const frac = maxLeft > 0 ? newLeft / maxLeft : 0;
+            window.aiWall.scrollToFraction(frac);
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging) { isDragging = false; thumb.classList.remove('dragging'); }
+        });
+
+        // ── Click on track ──
+        track.addEventListener('click', e => {
+            if (e.target === thumb) return;
+            if (scrollState.maxScroll <= 0) return;
+
+            const rect = track.getBoundingClientRect();
+            const trackW = rect.width;
+            const thumbW = thumb.getBoundingClientRect().width;
+
+            const clickLeft = e.clientX - rect.left - (thumbW / 2);
+            const maxLeft = trackW - thumbW;
+
+            let newLeft = Math.max(0, Math.min(maxLeft, clickLeft));
+            const frac = maxLeft > 0 ? newLeft / maxLeft : 0;
+            window.aiWall.scrollToFraction(frac);
+        });
+
+        // ── Mouse wheel ──
+        let pendingDelta = 0;
+        let ticking = false;
+
+        document.body.addEventListener('wheel', e => {
+            if (scrollState.maxScroll <= 0) return;
+
+            const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+            pendingDelta += delta;
+
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    if (pendingDelta !== 0) {
+                        window.aiWall.scrollPanels(pendingDelta);
+                        pendingDelta = 0;
+                    }
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }, { passive: true });
+
+        // ── IPC ──
+        window.aiWall.onScrollState(s => { scrollState = s; update(); });
+        window.aiWall.getScrollState().then(s => { scrollState = s; update(); });
+    </script>
+</body>
+
+</html>

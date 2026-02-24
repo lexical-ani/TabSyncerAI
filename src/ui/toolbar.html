@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TabSyncerAI — Toolbar</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #202124;
+            /* Google Chrome Dark Mode Frame Color */
+            font-family: 'Inter', -apple-system, sans-serif;
+            color: #bdc1c6;
+            overflow: hidden;
+            height: 40px;
+            display: flex;
+            align-items: flex-end;
+            /* Chrome tabs sit flush at the bottom */
+            border-bottom: 2px solid #323639;
+            /* The toolbar line */
+        }
+
+        .tabs-row {
+            display: flex;
+            height: 34px;
+            /* Chrome tab height (out of 40px available frame) */
+            align-items: flex-end;
+            width: fit-content;
+            will-change: transform;
+        }
+
+        .panel-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 10px;
+            height: 100%;
+            flex-shrink: 0;
+            background: #323639;
+            /* Chrome active tab / background */
+            border-radius: 8px 8px 0 0;
+            /* Chrome top rounded corners */
+            position: relative;
+            cursor: default;
+            min-width: 0;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            /* Slight top highlight */
+            transition: background 0.2s;
+            user-select: none;
+            /* Crucial for smooth mouse dragging */
+            touch-action: none;
+            /* Required for stable pointer events */
+            border-right: 1px solid #202124;
+            /* Visual separation without breaking viewport 1:1 pixel alignment */
+        }
+
+        .panel-tab::before {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            /* Fix the structural line gap to match Chrome */
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #323639;
+            /* Connect tab background directly over the border */
+        }
+
+        .panel-tab::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--tab-color, #7c6aef);
+            border-radius: 8px 8px 0 0;
+            opacity: 0.8;
+            z-index: 2;
+        }
+
+        .panel-tab:hover {
+            background: #3c4043;
+        }
+
+        .panel-tab:hover::before {
+            background: #3c4043;
+        }
+
+        /* Custom dragging classes to replace HTML5 Drag logic */
+        .dragging-custom {
+            opacity: 0.95;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            background: #3c4043;
+            z-index: 100;
+        }
+
+        .panel-icon-wrap {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-action {
+            position: relative;
+            z-index: 2;
+            background: transparent;
+            border: none;
+            color: #9aa0a6;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            /* Chrome typically has circular buttons */
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            line-height: 1;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e8eaed;
+        }
+
+        .panel-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 6px currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #fff;
+            text-shadow: 0 0 2px rgba(0, 0, 0, 0.8);
+            background: currentColor;
+        }
+
+        .panel-label {
+            position: relative;
+            z-index: 2;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #e8eaed;
+            max-width: 80px;
+            /* Constrain label like a real tab */
+            min-width: 0;
+            pointer-events: none;
+            /* Allow drag over text */
+        }
+
+        .panel-url-input {
+            position: relative;
+            z-index: 2;
+            font-size: 12px;
+            color: #e8eaed;
+            /* Chrome Omnibox style */
+            background: #202124;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            /* Pill shape! */
+            padding: 4px 12px;
+            width: 100%;
+            height: 26px;
+            outline: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .panel-url-input:hover {
+            background: #28292c;
+        }
+
+        .panel-url-input:focus {
+            background: #202124;
+            border-color: #8ab4f8;
+            /* highlight ring */
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="tabs-row" id="tabsRow"></div>
+
+    <script>
+        let allPanels = [];
+        let scrollState = { scrollOffsetX: 0, actualPanelWidth: 500 };
+        let tabsBuilt = false;
+
+        const tabsRow = document.getElementById('tabsRow');
+
+        function buildTabs() {
+            tabsRow.innerHTML = '';
+            const enabledPanels = allPanels.filter(p => p.enabled);
+            if (enabledPanels.length === 0) return;
+
+            const pW = scrollState.actualPanelWidth || 500;
+
+            enabledPanels.forEach(panel => {
+                const tab = document.createElement('div');
+                tab.className = 'panel-tab';
+                tab.style.setProperty('--tab-color', panel.color);
+                tab.style.width = pW + 'px'; // width is synced to panels underneath!
+                tab.dataset.id = panel.id;
+
+                tab.innerHTML = `
+                  <button class="btn-action btn-back" title="Go Back">‹</button>
+                  <div class="panel-icon-wrap">
+                      <span class="panel-dot" style="color:${panel.color}"></span>
+                  </div>
+                  <span class="panel-label">${panel.label}</span>
+                  <input class="panel-url-input" type="text" value="${panel.url || ''}" spellcheck="false" />
+                  <button class="btn-action btn-reload" title="Reload ${panel.label}">⟳</button>
+                `;
+
+                // Interactive elements inside
+                const btnReload = tab.querySelector('.btn-reload');
+                const btnBack = tab.querySelector('.btn-back');
+                const urlInput = tab.querySelector('.panel-url-input');
+
+                // Block drag initiation from these elements
+                btnReload.addEventListener('pointerdown', e => e.stopPropagation());
+                btnReload.addEventListener('click', e => {
+                    e.stopPropagation();
+                    window.aiWall.reloadPanel(panel.id);
+                });
+
+                btnBack.addEventListener('pointerdown', e => e.stopPropagation());
+                btnBack.addEventListener('click', e => {
+                    e.stopPropagation();
+                    window.aiWall.navigateBack(panel.id);
+                });
+
+                urlInput.addEventListener('keydown', e => {
+                    if (e.key === 'Enter') {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        urlInput.blur();
+                        window.aiWall.navigateUrl(panel.id, urlInput.value);
+                    }
+                });
+
+                urlInput.addEventListener('pointerdown', e => e.stopPropagation());
+
+                // Pointer Events for robust dragging (prevents dropping out of the iframe area)
+                tab.addEventListener('pointerdown', (e) => {
+                    if (e.button !== 0) return;
+
+                    tab.setPointerCapture(e.pointerId);
+
+                    const startX = e.clientX;
+                    let isDragging = false;
+
+                    const originalIndex = enabledPanels.findIndex(p => p.id === panel.id);
+                    let currentIndex = originalIndex;
+
+                    const allTabElements = Array.from(tabsRow.querySelectorAll('.panel-tab'));
+
+                    const onPointerMove = (moveEvent) => {
+                        const deltaX = moveEvent.clientX - startX;
+
+                        if (!isDragging && Math.abs(deltaX) > 3) {
+                            isDragging = true;
+                            tab.classList.add('dragging-custom');
+                            tab.style.transition = 'none'; // Lock transition during physical drag
+                        }
+
+                        if (isDragging) {
+                            // Translate dragged tab
+                            tab.style.transform = `translateX(${deltaX}px)`;
+
+                            // Determine new visual position
+                            let newIndex = originalIndex + Math.round(deltaX / pW);
+                            newIndex = Math.max(0, Math.min(allTabElements.length - 1, newIndex));
+
+                            if (newIndex !== currentIndex) {
+                                currentIndex = newIndex;
+
+                                // Shift competing sibling tabs sequentially
+                                allTabElements.forEach((otherTab, i) => {
+                                    if (i === originalIndex) return;
+                                    otherTab.style.transition = 'transform 0.2s ease-out';
+
+                                    if (originalIndex < currentIndex && i > originalIndex && i <= currentIndex) {
+                                        otherTab.style.transform = `translateX(${-pW}px)`;
+                                    } else if (originalIndex > currentIndex && i >= currentIndex && i < originalIndex) {
+                                        otherTab.style.transform = `translateX(${pW}px)`;
+                                    } else {
+                                        otherTab.style.transform = `translateX(0px)`;
+                                    }
+                                });
+                            }
+                        }
+                    };
+
+                    const onPointerUp = (upEvent) => {
+                        tab.releasePointerCapture(upEvent.pointerId);
+                        tab.removeEventListener('pointermove', onPointerMove);
+                        tab.removeEventListener('pointerup', onPointerUp);
+
+                        if (isDragging) {
+                            tab.classList.remove('dragging-custom');
+
+                            // Reset local styles used for translation effect
+                            allTabElements.forEach(t => {
+                                t.style.transition = '';
+                                t.style.transform = '';
+                            });
+
+                            if (currentIndex !== originalIndex) {
+                                // Locate the actual global index (including disabled tabs)
+                                const movedPanel = enabledPanels[originalIndex];
+                                const targetPanel = enabledPanels[currentIndex];
+
+                                const trueSrcIdx = allPanels.findIndex(p => p.id === movedPanel.id);
+                                const trueDstIdx = allPanels.findIndex(p => p.id === targetPanel.id);
+
+                                const newPanels = [...allPanels];
+                                const [moved] = newPanels.splice(trueSrcIdx, 1);
+
+                                const adjustedDstIdx = newPanels.findIndex(p => p.id === targetPanel.id);
+                                const insertAt = (originalIndex < currentIndex) ? adjustedDstIdx + 1 : adjustedDstIdx;
+
+                                newPanels.splice(insertAt, 0, moved);
+
+                                allPanels = newPanels;
+                                buildTabs();
+                                window.aiWall.saveConfig({ panels: newPanels });
+                            } else {
+                                updateOffset();
+                            }
+                        }
+                    };
+
+                    tab.addEventListener('pointermove', onPointerMove);
+                    tab.addEventListener('pointerup', onPointerUp);
+                });
+
+                tabsRow.appendChild(tab);
+            });
+
+            tabsBuilt = true;
+            updateOffset();
+        }
+
+        function updateOffset() {
+            if (!tabsBuilt) return;
+            const offsetX = scrollState.scrollOffsetX || 0;
+            const pW = scrollState.actualPanelWidth || 500;
+
+            const tabs = tabsRow.querySelectorAll('.panel-tab');
+            tabs.forEach(t => t.style.width = pW + 'px');
+
+            tabsRow.style.transform = `translateX(-${offsetX}px)`;
+        }
+
+        let pendingDelta = 0;
+        let ticking = false;
+
+        document.body.addEventListener('wheel', e => {
+            if (scrollState.maxScroll <= 0) return;
+
+            // Retain full correct signed delta regardless of axis
+            const delta = e.deltaX || e.deltaY; // Prioritize X, fall back to Y if X is 0
+            pendingDelta += delta;
+
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    if (pendingDelta !== 0) {
+                        window.aiWall.scrollPanels(pendingDelta);
+                        pendingDelta = 0;
+                    }
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }, { passive: true });
+
+        window.aiWall.onToolbarInfo(panels => {
+            allPanels = panels;
+            buildTabs();
+        });
+
+        window.aiWall.onScrollState(state => {
+            scrollState = state;
+            if (tabsBuilt) updateOffset();
+            else buildTabs();
+        });
+
+        window.aiWall.getPanels().then(panels => {
+            allPanels = panels;
+            window.aiWall.getScrollState().then(state => {
+                scrollState = state;
+                buildTabs();
+            });
+        });
+    </script>
+</body>
+
+</html>

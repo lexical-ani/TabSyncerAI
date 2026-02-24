@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TabSyncerAI — Control Panel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ──────────────────────────────────────────────────
+       CSS RESET & ROOT
+    ────────────────────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #111117;
+            --bg-secondary: #16161e;
+            --bg-tertiary: #1c1c26;
+            --bg-hover: #22222e;
+            --bg-active: #2a2a38;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --border-medium: rgba(255, 255, 255, 0.1);
+            --text-primary: #e8e8f0;
+            --text-secondary: #a0a0b8;
+            --text-muted: #606078;
+            --accent: #7c6aef;
+            --accent-glow: rgba(124, 106, 239, 0.25);
+            --accent-hover: #9080ff;
+            --success: #10a37f;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
+            --shadow-glow: 0 0 20px var(--accent-glow);
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border-subtle);
+        }
+
+        /* ──────────────────────────────────────────────────
+       SCROLLBAR
+    ────────────────────────────────────────────────── */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 99px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        /* ──────────────────────────────────────────────────
+       HEADER
+    ────────────────────────────────────────────────── */
+        .header {
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .header-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, #7c6aef, #a78bfa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 800;
+            color: #fff;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #e8e8f0, #a0a0b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* ──────────────────────────────────────────────────
+       PANEL CHECKBOXES
+    ────────────────────────────────────────────────── */
+        .targets-section {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .targets-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 10px;
+        }
+
+        .target-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .sortable-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .sortable-item:hover {
+            border-color: var(--border-medium);
+            background: var(--bg-hover);
+        }
+
+        .btn-reset-tab {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-medium);
+            color: var(--text-secondary);
+            height: 28px;
+            padding: 0 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .btn-reset-tab:hover:not(:disabled) {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-reset-tab:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .target-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background 0.2s ease;
+            user-select: none;
+        }
+
+        .target-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .target-item .item-label {
+            font-size: 13px;
+            font-weight: 600;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .target-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-medium);
+            border-radius: 5px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .target-checkbox:checked {
+            border-color: var(--accent);
+            background: var(--accent);
+        }
+
+        .target-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .target-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .target-name {
+            font-size: 13px;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .target-status {
+            font-size: 9px;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .target-status.active {
+            background: rgba(16, 163, 127, 0.15);
+            color: var(--success);
+        }
+
+        .target-status.disabled {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+        }
+
+        .select-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .select-btn {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--accent);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 0;
+            transition: color 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .select-btn:hover {
+            color: var(--accent-hover);
+        }
+
+        .select-btn::after {
+            content: '';
+            display: inline;
+        }
+
+        .select-divider {
+            color: var(--text-muted);
+            font-size: 10px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        /* ──────────────────────────────────────────────────
+       CHAT MESSAGES
+    ────────────────────────────────────────────────── */
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 16px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .message-empty-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-lg);
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .message-empty-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .message-empty-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .message-bubble {
+            max-width: 92%;
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-sent {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--accent), #6055cc);
+            color: #fff;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .message-time {
+            font-size: 10px;
+            opacity: 0.6;
+        }
+
+        .message-target-badge {
+            font-size: 9px;
+            padding: 2px 7px;
+            border-radius: 99px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .message-status {
+            align-self: center;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .message-status.success {
+            border-color: rgba(16, 163, 127, 0.2);
+            color: var(--success);
+        }
+
+        .message-status.error {
+            border-color: rgba(239, 68, 68, 0.2);
+            color: var(--error);
+        }
+
+        /* ──────────────────────────────────────────────────
+       INPUT AREA
+    ────────────────────────────────────────────────── */
+        .input-area {
+            padding: 16px;
+            border-top: 1px solid var(--border-subtle);
+            background: var(--bg-secondary);
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-md);
+            padding: 4px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .prompt-textarea {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 10px 12px;
+            resize: none;
+            outline: none;
+            max-height: 120px;
+            min-height: 40px;
+        }
+
+        .prompt-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .attach-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .attach-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--border-subtle);
+        }
+
+        .attachment-preview {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-hover);
+            border: 1px solid var(--border-medium);
+            padding: 6px 12px;
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            margin-bottom: -4px;
+            font-size: 12px;
+            color: var(--text-primary);
+        }
+
+        .attachment-preview.active {
+            display: flex;
+        }
+
+        .remove-attachment-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .remove-attachment-btn:hover {
+            color: var(--error);
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent), #6055cc);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            background: linear-gradient(135deg, var(--accent-hover), #7065dd);
+            transform: scale(1.05);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .send-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .input-hint {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .input-hint kbd {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 9px;
+        }
+
+        /* ──────────────────────────────────────────────────
+       SENDING ANIMATION
+    ────────────────────────────────────────────────── */
+        .sending-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        .sending-indicator.active {
+            display: flex;
+        }
+
+        .sending-dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .sending-dots span {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: dotPulse 1.2s ease-in-out infinite;
+        }
+
+        .sending-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .sending-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes dotPulse {
+
+            0%,
+            80%,
+            100% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+
+            40% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        /* ──────────────────────────────────────────────────
+       SETTINGS OVERLAY
+    ────────────────────────────────────────────────── */
+        .settings-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            margin-left: auto;
+        }
+
+        .settings-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+
+        .settings-overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-primary);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .settings-overlay.active {
+            display: flex;
+        }
+
+        .settings-header {
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .settings-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .settings-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .settings-close:hover {
+            color: var(--text-primary);
+        }
+
+        .settings-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .settings-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .settings-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .slider-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-slider {
+            flex: 1;
+            accent-color: var(--accent);
+        }
+
+        .form-value {
+            font-size: 12px;
+            font-family: monospace;
+            background: var(--bg-tertiary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-medium);
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .sortable-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sortable-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            user-select: none;
+        }
+
+        .sortable-item .drag-handle {
+            cursor: grab;
+            color: var(--text-muted);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .sortable-item .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .sortable-item .item-label {
+            flex: 1;
+            font-size: 13px;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 32px;
+            height: 18px;
+            flex-shrink: 0;
+            -webkit-app-region: no-drag;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            left: 2px;
+            bottom: 2px;
+            background: #555;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: rgba(16, 163, 127, 0.6);
+        }
+
+        .toggle-switch input:checked+.toggle-slider::before {
+            transform: translateX(14px);
+            background: #10a37f;
+            box-shadow: 0 0 4px rgba(16, 163, 127, 0.5);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══ HEADER ═══ -->
+    <div class="header">
+        <div class="header-brand">
+            <div class="header-logo">⚡</div>
+            <div>
+                <div class="header-title">TabSyncerAI</div>
+                <div class="header-subtitle">Prompt Broadcaster</div>
+            </div>
+            <button class="settings-btn" id="openSettingsBtn" title="Settings">⚙️</button>
+        </div>
+    </div>
+
+    <!-- ═══ TARGET SELECTION ═══ -->
+    <div class="targets-section">
+        <div class="targets-label">Send To</div>
+        <div class="target-list" id="targetList"></div>
+        <div class="select-actions">
+            <button class="select-btn" id="selectAll">Select All</button>
+            <span class="select-divider">·</span>
+            <button class="select-btn" id="selectNone">Deselect All</button>
+        </div>
+    </div>
+
+    <!-- ═══ MESSAGES ═══ -->
+    <div class="messages-container" id="messages">
+        <div class="message-empty" id="emptyState">
+            <div class="message-empty-icon">🚀</div>
+            <div class="message-empty-title">Ready to broadcast</div>
+            <div class="message-empty-desc">
+                Type a prompt below and send it to<br>multiple AI assistants at once.
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ SENDING INDICATOR ═══ -->
+    <div class="sending-indicator" id="sendingIndicator">
+        <div class="sending-dots">
+            <span></span><span></span><span></span>
+        </div>
+        <span>Broadcasting prompt...</span>
+    </div>
+
+    <!-- ═══ INPUT AREA ═══ -->
+    <div class="input-area">
+        <div class="attachment-preview" id="attachmentPreview">
+            <span id="attachmentName">...</span>
+            <button class="remove-attachment-btn" id="removeAttachmentBtn" title="Remove attachment">✕</button>
+        </div>
+        <div class="input-wrapper">
+            <button class="attach-btn" id="attachBtn" title="Attach file (PDF, Image, CSV)">📎</button>
+            <input type="file" id="fileInput" style="display: none;" />
+            <textarea class="prompt-textarea" id="promptInput" placeholder="Type your prompt here..."
+                rows="1"></textarea>
+            <button class="send-btn" id="sendBtn" title="Send prompt">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                </svg>
+            </button>
+        </div>
+        <div class="input-hint">
+            <span><kbd>Enter</kbd> to send · <kbd>Shift+Enter</kbd> for new line</span>
+            <span id="charCount">0</span>
+        </div>
+    </div>
+
+    <!-- ═══ SETTINGS OVERLAY ═══ -->
+    <div class="settings-overlay" id="settingsOverlay">
+        <div class="settings-header">
+            <div class="settings-title">Settings & Configuration</div>
+            <button class="settings-close" id="closeSettingsBtn">✕</button>
+        </div>
+        <div class="settings-content">
+            <div class="settings-group">
+                <div class="settings-label">
+                    <span>Global Panel Width</span>
+                </div>
+                <div class="slider-wrapper">
+                    <input type="range" id="panelWidthSlider" class="form-slider" min="300" max="1200" step="10"
+                        value="500">
+                    <span class="form-value" id="panelWidthValue">500px</span>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <div class="settings-label">Rearrange & Toggle Tabs</div>
+                <div class="sortable-list" id="settingsSortableList">
+                    <!-- Javascript will populate list -->
+                </div>
+                <div style="font-size:10px; color:var(--text-muted); margin-top: 4px;">Drag the ≡ handle to reorder
+                    tabs. Changes save automatically.</div>
+            </div>
+
+            <button class="btn-danger" id="resetAppBtn">Reset Application State</button>
+        </div>
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════
+        // STATE
+        // ═══════════════════════════════════════════════════
+        let panels = [];
+        let isSending = false;
+
+        // ═══════════════════════════════════════════════════
+        // DOM REFS
+        // ═══════════════════════════════════════════════════
+        const targetListEl = document.getElementById('targetList');
+        const messagesEl = document.getElementById('messages');
+        const emptyStateEl = document.getElementById('emptyState');
+        const promptInput = document.getElementById('promptInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const sendingIndicator = document.getElementById('sendingIndicator');
+        const charCountEl = document.getElementById('charCount');
+        const selectAllBtn = document.getElementById('selectAll');
+        const selectNoneBtn = document.getElementById('selectNone');
+
+        // ═══════════════════════════════════════════════════
+        // PANEL INFO
+        // ═══════════════════════════════════════════════════
+        function updatePanels(newPanels) {
+            panels = newPanels;
+            renderTargets();
+
+            // Re-render settings list if open so reset buttons map correctly
+            if (isSettingsOpen) {
+                renderSettingsList();
+            }
+        }
+
+        function renderTargets() {
+            targetListEl.innerHTML = '';
+
+            panels.forEach(panel => {
+                const item = document.createElement('div');
+                item.className = 'target-item';
+                item.dataset.id = panel.id;
+                // HTML5 draggable removed completely
+
+                // Stop drag from clicking checkbox
+                item.innerHTML = `
+                  <div class="drag-handle" style="cursor: grab; color: var(--text-muted); font-size: 14px; margin-right: 4px; padding: 0 4px; touch-action: none;" title="Drag to reorder">≡</div>
+                  <input type="checkbox" class="target-checkbox" data-id="${panel.id}" ${panel.enabled ? 'checked' : ''}>
+                  <span class="target-dot" style="background: ${panel.color}; box-shadow: 0 0 6px ${panel.color}40"></span>
+                  <span class="target-name" style="cursor: pointer;">${panel.label}</span>
+                  <span class="target-status ${panel.enabled ? 'active' : 'disabled'}">
+                    ${panel.enabled ? 'Active' : 'Off'}
+                  </span>
+                `;
+
+                const checkbox = item.querySelector('.target-checkbox');
+                const targetName = item.querySelector('.target-name');
+                const dragHandle = item.querySelector('.drag-handle');
+
+                const togglePanelState = () => {
+                    panel.enabled = !panel.enabled;
+                    window.aiWall.saveConfig({ panels });
+                };
+
+                checkbox.addEventListener('change', (e) => {
+                    e.preventDefault();
+                    // Revert the check visually; we let the state bounce back via updatePanels
+                    checkbox.checked = !checkbox.checked;
+                    togglePanelState();
+                });
+
+                targetName.addEventListener('click', () => {
+                    togglePanelState();
+                });
+
+                // Pointer-based vertical drag-and-drop
+                dragHandle.addEventListener('pointerdown', (e) => {
+                    if (e.button !== 0) return;
+
+                    dragHandle.setPointerCapture(e.pointerId);
+
+                    const startY = e.clientY;
+                    let isDragging = false;
+
+                    const itemHeight = item.offsetHeight + 4; // Includes the 4px flex gap
+                    const originalIndex = panels.findIndex(p => p.id === panel.id);
+                    let currentIndex = originalIndex;
+
+                    const allItems = Array.from(targetListEl.querySelectorAll('.target-item'));
+
+                    const onPointerMove = (moveEvent) => {
+                        const deltaY = moveEvent.clientY - startY;
+
+                        if (!isDragging && Math.abs(deltaY) > 3) {
+                            isDragging = true;
+                            item.style.position = 'relative';
+                            item.style.zIndex = '100';
+                            item.style.boxShadow = 'var(--shadow-sm)';
+                            item.style.background = 'var(--bg-active)';
+                            item.style.transition = 'none';
+                        }
+
+                        if (isDragging) {
+                            item.style.transform = `translateY(${deltaY}px)`;
+
+                            let newIndex = originalIndex + Math.round(deltaY / itemHeight);
+                            newIndex = Math.max(0, Math.min(allItems.length - 1, newIndex));
+
+                            if (newIndex !== currentIndex) {
+                                currentIndex = newIndex;
+
+                                allItems.forEach((otherItem, i) => {
+                                    if (i === originalIndex) return;
+                                    otherItem.style.transition = 'transform 0.2s ease-out';
+
+                                    if (originalIndex < currentIndex && i > originalIndex && i <= currentIndex) {
+                                        otherItem.style.transform = `translateY(${-itemHeight}px)`;
+                                    } else if (originalIndex > currentIndex && i >= currentIndex && i < originalIndex) {
+                                        otherItem.style.transform = `translateY(${itemHeight}px)`;
+                                    } else {
+                                        otherItem.style.transform = `translateY(0px)`;
+                                    }
+                                });
+                            }
+                        }
+                    };
+
+                    const onPointerUp = (upEvent) => {
+                        dragHandle.releasePointerCapture(upEvent.pointerId);
+                        dragHandle.removeEventListener('pointermove', onPointerMove);
+                        dragHandle.removeEventListener('pointerup', onPointerUp);
+
+                        if (isDragging) {
+                            item.style.zIndex = '';
+                            item.style.boxShadow = '';
+                            item.style.background = '';
+                            item.style.position = '';
+
+                            allItems.forEach(i => {
+                                i.style.transition = '';
+                                i.style.transform = '';
+                            });
+
+                            if (currentIndex !== originalIndex) {
+                                const newPanels = [...panels];
+                                const [moved] = newPanels.splice(originalIndex, 1);
+                                newPanels.splice(currentIndex, 0, moved);
+
+                                updatePanels(newPanels); // Force instant local UI refresh
+                                window.aiWall.saveConfig({ panels: newPanels });
+                            } else {
+                                item.style.transform = '';
+                            }
+                        }
+                    };
+
+                    dragHandle.addEventListener('pointermove', onPointerMove);
+                    dragHandle.addEventListener('pointerup', onPointerUp);
+                });
+
+                targetListEl.appendChild(item);
+            });
+        }
+
+
+        // Select all / none (toggles enabled state)
+        selectAllBtn.addEventListener('click', () => {
+            panels.forEach(p => p.enabled = true);
+            window.aiWall.saveConfig({ panels });
+        });
+
+        selectNoneBtn.addEventListener('click', () => {
+            panels.forEach(p => p.enabled = false);
+            window.aiWall.saveConfig({ panels });
+        });
+
+        // ═══════════════════════════════════════════════════
+        // MESSAGE RENDERING
+        // ═══════════════════════════════════════════════════
+        let messageCount = 0;
+
+        function addMessage(type, content, meta = {}) {
+            // Hide empty state
+            if (emptyStateEl) emptyStateEl.style.display = 'none';
+
+            const bubble = document.createElement('div');
+
+            if (type === 'sent') {
+                bubble.className = 'message-bubble message-sent';
+
+                const textEl = document.createElement('div');
+                textEl.textContent = content;
+                bubble.appendChild(textEl);
+
+                if (meta.targets && meta.targets.length > 0) {
+                    const metaEl = document.createElement('div');
+                    metaEl.className = 'message-meta';
+
+                    const timeEl = document.createElement('span');
+                    timeEl.className = 'message-time';
+                    timeEl.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    metaEl.appendChild(timeEl);
+
+                    meta.targets.forEach(t => {
+                        const badge = document.createElement('span');
+                        badge.className = 'message-target-badge';
+                        badge.textContent = t;
+                        metaEl.appendChild(badge);
+                    });
+
+                    bubble.appendChild(metaEl);
+                }
+            } else if (type === 'status') {
+                bubble.className = `message-status ${meta.variant || ''}`;
+                bubble.textContent = content;
+            }
+
+            messagesEl.appendChild(bubble);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+            messageCount++;
+        }
+
+        // ═══════════════════════════════════════════════════
+        // SEND PROMPT
+        // ═══════════════════════════════════════════════════
+        async function sendPrompt() {
+            const prompt = promptInput.value.trim();
+            const filePath = window.fileInput.files.length > 0 ? window.aiWall.getFilePath(window.fileInput.files[0]) : null;
+
+            if (!prompt && !filePath || isSending) return;
+
+            // Only send to platforms that are physically enabled (checked)
+            const targets = panels.filter(p => p.enabled).map(p => p.id);
+
+            if (targets.length === 0) {
+                addMessage('status', '⚠ No targets checked/enabled', { variant: 'error' });
+                return;
+            }
+
+            isSending = true;
+            sendBtn.disabled = true;
+            sendingIndicator.classList.add('active');
+
+            // Add sent message
+            const targetLabels = targets.map(id => {
+                const p = panels.find(pp => pp.id === id);
+                return p ? p.label : id;
+            });
+            const displayPrompt = filePath ? "📎 " + window.fileInput.files[0].name + "\n" + prompt : prompt;
+            addMessage('sent', displayPrompt, { targets: targetLabels });
+
+            // Clear input
+            promptInput.value = '';
+            promptInput.style.height = 'auto';
+            charCountEl.textContent = '0';
+
+            try {
+                const results = await window.aiWall.sendPrompt(prompt, targets, filePath);
+
+                // clear attachment visually
+                window.fileInput.value = '';
+                document.getElementById('attachmentPreview').classList.remove('active');
+
+                const successes = [];
+                const failures = [];
+
+                for (const [id, result] of Object.entries(results)) {
+                    const p = panels.find(pp => pp.id === id);
+                    const label = p ? p.label : id;
+                    if (result.success) {
+                        successes.push(label);
+                    } else {
+                        failures.push(`${label}: ${result.error} `);
+                    }
+                }
+
+                if (successes.length > 0) {
+                    addMessage('status', `✓ Sent to ${successes.join(', ')} `, { variant: 'success' });
+                }
+                if (failures.length > 0) {
+                    failures.forEach(f => {
+                        addMessage('status', `✗ ${f} `, { variant: 'error' });
+                    });
+                }
+            } catch (err) {
+                addMessage('status', `✗ Error: ${err.message} `, { variant: 'error' });
+            }
+
+            isSending = false;
+            sendBtn.disabled = false;
+            sendingIndicator.classList.remove('active');
+            promptInput.focus();
+        }
+
+        // ═══════════════════════════════════════════════════
+        // EVENT LISTENERS
+        // ═══════════════════════════════════════════════════
+
+        // Send button
+        sendBtn.addEventListener('click', sendPrompt);
+
+        // Attachment handles
+        const attachBtn = document.getElementById('attachBtn');
+        const fileInput = document.getElementById('fileInput');
+        const attachmentPreview = document.getElementById('attachmentPreview');
+        const attachmentName = document.getElementById('attachmentName');
+        const removeAttachmentBtn = document.getElementById('removeAttachmentBtn');
+
+        // Make it globally accessible for the sendPrompt method cleanly
+        window.fileInput = fileInput;
+
+        attachBtn.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                attachmentName.textContent = '📎 ' + fileInput.files[0].name;
+                attachmentPreview.classList.add('active');
+            } else {
+                attachmentPreview.classList.remove('active');
+            }
+        });
+
+        removeAttachmentBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            attachmentPreview.classList.remove('active');
+        });
+
+        // Keyboard shortcuts
+        promptInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendPrompt();
+            }
+        });
+
+        // Auto-resize textarea
+        promptInput.addEventListener('input', () => {
+            promptInput.style.height = 'auto';
+            promptInput.style.height = Math.min(promptInput.scrollHeight, 120) + 'px';
+            charCountEl.textContent = promptInput.value.length;
+        });
+
+        // ═══════════════════════════════════════════════════
+        // SETTINGS & CONFIGURATION
+        // ═══════════════════════════════════════════════════
+        const settingsOverlay = document.getElementById('settingsOverlay');
+        const openSettingsBtn = document.getElementById('openSettingsBtn');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const panelWidthSlider = document.getElementById('panelWidthSlider');
+        const panelWidthValue = document.getElementById('panelWidthValue');
+        const settingsSortableList = document.getElementById('settingsSortableList');
+        const resetAppBtn = document.getElementById('resetAppBtn');
+
+        let isSettingsOpen = false;
+
+        openSettingsBtn.addEventListener('click', () => {
+            isSettingsOpen = true;
+            settingsOverlay.classList.add('active');
+            renderSettingsList();
+
+            // Get current global config from electron
+            window.aiWall.getScrollState().then(s => {
+                const w = s.actualPanelWidth || 500;
+                panelWidthSlider.value = w;
+                panelWidthValue.textContent = w + 'px';
+            });
+        });
+
+        closeSettingsBtn.addEventListener('click', () => {
+            isSettingsOpen = false;
+            settingsOverlay.classList.remove('active');
+        });
+
+        // Width Slider
+        panelWidthSlider.addEventListener('input', (e) => {
+            panelWidthValue.textContent = e.target.value + 'px';
+        });
+        panelWidthSlider.addEventListener('change', (e) => {
+            const width = parseInt(e.target.value);
+            window.aiWall.saveConfig({ panelWidth: width });
+        });
+
+        // Reset App
+        resetAppBtn.addEventListener('click', () => {
+            if (confirm("Are you sure you want to reset all panels and configurations? This restarts the app.")) {
+                window.aiWall.resetPanels();
+            }
+        });
+
+        // Settings list now only shows strictly panel info + reset tab buttons
+        function renderSettingsList() {
+            settingsSortableList.innerHTML = '';
+
+            panels.forEach((p, idx) => {
+                const item = document.createElement('div');
+                item.className = 'sortable-item';
+
+                item.innerHTML = `
+                    <span class="target-dot" style="background: ${p.color}; box-shadow: 0 0 6px ${p.color}40"></span>
+                    <div class="item-label">${p.label}</div>
+                    
+                    <button class="btn-reset-tab" data-id="${p.id}" title="Reset ${p.label} Session">Reset Data ↺</button>
+                    
+                    <label class="toggle-switch">
+                        <input type="checkbox" class="panel-toggle" data-id="${p.id}" ${p.enabled ? 'checked' : ''}>
+                        <span class="toggle-slider"></span>
+                    </label>
+                `;
+
+                // Toggle
+                item.querySelector('.panel-toggle').addEventListener('change', (e) => {
+                    p.enabled = e.target.checked;
+                    window.aiWall.saveConfig({ panels });
+                });
+
+                // Reset Tab Data
+                item.querySelector('.btn-reset-tab').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if (confirm(`Are you sure you want to completely clear session data (logouts, cookies, cache) for ${p.label}?`)) {
+                        const originalText = e.target.textContent;
+                        e.target.textContent = '...';
+                        e.target.disabled = true;
+
+                        const res = await window.aiWall.resetTab(p.id);
+                        if (res && res.success) {
+                            addMessage('status', `✓ ${p.label} app data cleared successfully.`, { variant: 'success' });
+                        } else {
+                            addMessage('status', `✗ Failed to clear ${p.label} data: ${res?.error || 'Unknown error'}`, { variant: 'error' });
+                        }
+
+                        e.target.textContent = originalText;
+                        e.target.disabled = false;
+                    }
+                });
+
+                settingsSortableList.appendChild(item);
+            });
+        }
+
+        // ═══════════════════════════════════════════════════
+        // IPC LISTENERS
+        // ═══════════════════════════════════════════════════
+        window.aiWall.onPanelInfo(updatePanels);
+        window.aiWall.getPanels().then(updatePanels);
+    </script>
+</body>
+
+</html>

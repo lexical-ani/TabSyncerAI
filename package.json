@@ -1,0 +1,97 @@
+{
+  "name": "tabsyncerai",
+  "version": "1.0.0",
+  "description": "Multi-panel AI browser workspace — broadcast prompts to multiple AI websites simultaneously",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux",
+    "build:icons": "node build-icons.js"
+  },
+  "author": "TabSyncerAI Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/TabSyncerAI.git"
+  },
+  "keywords": [
+    "ai",
+    "chatgpt",
+    "gemini",
+    "claude",
+    "grok",
+    "deepseek",
+    "perplexity",
+    "copilot",
+    "multi-panel",
+    "broadcast",
+    "electron"
+  ],
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "electron-icon-builder": "^2.0.1",
+    "png-to-ico": "^3.0.1",
+    "to-ico": "^1.1.5"
+  },
+  "build": {
+    "appId": "com.tabsyncerai.app",
+    "productName": "TabSyncerAI",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "config.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "TabSyncerAI"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "assets/icon.png",
+      "category": "Utility"
+    }
+  }
+}

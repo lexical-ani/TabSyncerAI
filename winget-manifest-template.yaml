@@ -1,0 +1,32 @@
+# This is a template for Winget submission
+# After building, replace YOUR_SHA256_HASH with actual hash
+# Submit to: https://github.com/microsoft/winget-pkgs
+
+PackageIdentifier: TabSyncerAI.TabSyncerAI
+PackageVersion: 1.0.0
+PackageName: TabSyncerAI
+Publisher: TabSyncerAI Contributors
+License: MIT
+LicenseUrl: https://github.com/yourusername/TabSyncerAI/blob/main/LICENSE
+ShortDescription: Multi-panel AI browser workspace - broadcast prompts to multiple AI services
+Description: |
+  TabSyncerAI is a multi-panel AI browser workspace that allows you to broadcast prompts 
+  to ChatGPT, Gemini, Claude, Copilot, Grok, DeepSeek, Perplexity, Mistral, and more, 
+  all in one window. Features include file upload support, persistent sessions, 
+  drag & drop reordering, and cross-platform compatibility.
+Homepage: https://github.com/yourusername/TabSyncerAI
+Tags:
+  - ai
+  - chatgpt
+  - gemini
+  - claude
+  - productivity
+  - electron
+Installers:
+  - Architecture: x64
+    InstallerType: nullsoft
+    InstallerUrl: https://github.com/yourusername/TabSyncerAI/releases/download/v1.0.0/TabSyncerAI-Setup-1.0.0.exe
+    InstallerSha256: YOUR_SHA256_HASH
+    Scope: user
+ManifestType: singleton
+ManifestVersion: 1.0.0
