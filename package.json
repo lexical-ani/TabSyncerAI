@@ -39,6 +39,7 @@
   "build": {
     "appId": "com.tabsyncerai.app",
     "productName": "TabSyncerAI",
+    "publish": null,
     "directories": {
       "output": "dist"
     },

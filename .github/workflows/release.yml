@@ -21,7 +21,7 @@ jobs:
         run: npm install
         
       - name: Build Windows
-        run: npm run build:win
+        run: npm run build:win -- --publish never
         
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
@@ -46,7 +46,7 @@ jobs:
         run: npm install
         
       - name: Build macOS
-        run: npm run build:mac
+        run: npm run build:mac -- --publish never
         
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
@@ -71,7 +71,7 @@ jobs:
         run: npm install
         
       - name: Build Linux
-        run: npm run build:linux
+        run: npm run build:linux -- --publish never
         
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
