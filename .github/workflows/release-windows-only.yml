@@ -1,0 +1,68 @@
+name: Windows Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*-win'
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+        
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Build Windows
+        run: npm run build:win -- --publish never
+        
+      - name: List Windows build artifacts
+        shell: pwsh
+        run: |
+          Write-Host "Contents of dist folder:"
+          if (Test-Path "dist") { Get-ChildItem -Path "dist" -Recurse } else { Write-Host "No dist folder found" }
+          Write-Host "Looking for .exe files:"
+          if (Test-Path "dist") { Get-ChildItem -Path "dist" -Filter "*.exe" -Recurse } else { Write-Host "No .exe files found" }
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            dist/*.exe
+            dist/*.blockmap
+          body: |
+            # TabSyncerAI v1.0.0 - Windows Release
+            
+            🚀 Multi-panel AI workspace for Windows
+            
+            ## Download
+            - **Windows Installer**: `TabSyncerAI Setup 1.0.0.exe`
+            
+            ## Features
+            - Support for 8 AI platforms (ChatGPT, Gemini, Claude, DeepSeek, Grok, Copilot, Perplexity, Mistral)
+            - Prompt broadcasting to multiple services simultaneously
+            - File upload support for images and documents
+            - Persistent login sessions across app restarts
+            - Drag & drop panel reordering
+            - Customizable interface
+            
+            ## Installation
+            1. Download the installer
+            2. Run `TabSyncerAI Setup 1.0.0.exe`
+            3. You may see a SmartScreen warning (normal for unsigned apps) - click "More info" → "Run anyway"
+            
+            **Note**: macOS and Linux builds coming soon!
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: false
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
