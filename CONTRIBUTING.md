@@ -33,7 +33,7 @@ We love new ideas! Open an issue with:
 
 ```bash
 # Clone your fork
-git clone https://github.com/yourusername/TabSyncerAI.git
+git clone https://github.com/lexical-ani/TabSyncerAI.git
 cd TabSyncerAI
 
 # Install dependencies

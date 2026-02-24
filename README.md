@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Electron](https://img.shields.io/badge/Electron-33.2.0-blue.svg)](https://www.electronjs.org/)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/yourusername/TabSyncerAI)
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/lexical-ani/TabSyncerAI)
 
 ---
 
@@ -12,7 +12,7 @@
 
 ### Option 1: Download Pre-built Binary (Recommended)
 
-1. Go to the [Releases](https://github.com/yourusername/TabSyncerAI/releases) page
+1. Go to the [Releases](https://github.com/lexical-ani/TabSyncerAI/releases) page
 2. Download the latest version for your platform:
    - **Windows**: `TabSyncerAI-Setup-1.0.0.exe` (installer) or `TabSyncerAI-1.0.0-portable.exe` (portable)
    - **macOS**: `TabSyncerAI-1.0.0.dmg`
