@@ -14,9 +14,9 @@
 
 1. Go to the [Releases](https://github.com/lexical-ani/TabSyncerAI/releases) page
 2. Download the latest version for your platform:
-   - **Windows**: `TabSyncerAI-Setup-1.0.0.exe` (installer) or `TabSyncerAI-1.0.0-portable.exe` (portable)
-   - **macOS**: `TabSyncerAI-1.0.0.dmg`
-   - **Linux**: `TabSyncerAI-1.0.0.AppImage` or `tabsyncerai_1.0.0_amd64.deb`
+   - **Windows**: `TabSyncerAI-Setup-2.0.0.exe` (installer) or `TabSyncerAI-2.0.0-portable.exe` (portable)
+   - **macOS**: `TabSyncerAI-2.0.0.dmg`
+   - **Linux**: `TabSyncerAI-2.0.0.AppImage` or `tabsyncerai_2.0.0_amd64.deb`
 3. Run the installer and follow the prompts
 
 **Note for Windows users**: You may see a SmartScreen warning because the app is not code-signed (certificates cost $400/year). This is normal for free open-source software. Click "More info" → "Run anyway". See [Installation Guide](INSTALLATION_GUIDE.md) for details.

@@ -1,6 +1,6 @@
 {
   "name": "tabsyncerai",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Multi-panel AI browser workspace — broadcast prompts to multiple AI websites simultaneously",
   "main": "src/main.js",
   "scripts": {
