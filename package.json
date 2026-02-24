@@ -11,7 +11,8 @@
     "build:linux": "electron-builder --linux",
     "build:icons": "node build-icons.js",
     "prepare-release": "node scripts/prepare-release.js",
-    "manual-release": "node scripts/manual-release.js"
+    "manual-release": "node scripts/manual-release.js",
+    "create-release": "node scripts/create-manual-release.js"
   },
   "author": "TabSyncerAI Contributors",
   "license": "MIT",
