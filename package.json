@@ -10,6 +10,8 @@
     "build:mac": "electron-builder --mac",
     "build:linux": "electron-builder --linux",
     "build:icons": "node build-icons.js",
+    "generate-logo": "node scripts/generate-logo.js",
+    "convert-logo": "node scripts/convert-logo.js",
     "prepare-release": "node scripts/prepare-release.js",
     "manual-release": "node scripts/manual-release.js",
     "create-release": "node scripts/create-manual-release.js"
@@ -35,7 +37,8 @@
   ],
   "devDependencies": {
     "electron": "^33.2.0",
-    "electron-builder": "^26.8.1"
+    "electron-builder": "^26.8.1",
+    "sharp": "^0.34.5"
   },
   "build": {
     "appId": "com.tabsyncerai.app",

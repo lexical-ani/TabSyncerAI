@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SVG to PNG Converter - TabSyncerAI Logo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .preview {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        #logoPreview {
+            max-width: 300px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        .size-selector {
+            margin: 20px 0;
+        }
+        select {
+            padding: 8px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 TabSyncerAI Logo Generator</h1>
+        <p>Generate PNG icons from the SVG logo design</p>
+        
+        <div class="preview">
+            <h3>Logo Preview</h3>
+            <img id="logoPreview" src="../assets/logo.svg" alt="TabSyncerAI Logo">
+        </div>
+        
+        <div class="size-selector">
+            <label for="sizeSelect">Select Size:</label>
+            <select id="sizeSelect">
+                <option value="1024">1024x1024 (Main Icon)</option>
+                <option value="512">512x512</option>
+                <option value="256">256x256</option>
+                <option value="128">128x128</option>
+                <option value="64">64x64</option>
+                <option value="48">48x48</option>
+                <option value="32">32x32</option>
+                <option value="24">24x24</option>
+                <option value="16">16x16</option>
+            </select>
+        </div>
+        
+        <div style="text-align: center;">
+            <button onclick="downloadPNG()">📥 Download PNG</button>
+            <button onclick="downloadAllSizes()">📦 Download All Sizes</button>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 Instructions:</h3>
+            <ol>
+                <li>Open this file in your browser: <code>scripts/svg-to-png.html</code></li>
+                <li>Click "Download PNG" to get individual sizes</li>
+                <li>Or click "Download All Sizes" to get all icon sizes</li>
+                <li>Save the downloaded files to the <code>assets/</code> folder</li>
+                <li>Run <code>npm run build:icons</code> to generate .ico and .icns files</li>
+            </ol>
+        </div>
+        
+        <canvas id="canvas" style="display:none;"></canvas>
+    </div>
+
+    <script>
+        async function downloadPNG() {
+            const size = parseInt(document.getElementById('sizeSelect').value);
+            const svgUrl = '../assets/logo.svg';
+            
+            try {
+                const response = await fetch(svgUrl);
+                const svgText = await response.text();
+                const blob = new Blob([svgText], { type: 'image/svg+xml' });
+                const url = URL.createObjectURL(blob);
+                
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.getElementById('canvas');
+                    canvas.width = size;
+                    canvas.height = size;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, size, size);
+                    
+                    canvas.toBlob(function(blob) {
+                        const link = document.createElement('a');
+                        link.download = size === 1024 ? 'icon.png' : `icon_${size}x${size}.png`;
+                        link.href = URL.createObjectURL(blob);
+                        link.click();
+                        URL.revokeObjectURL(link.href);
+                    });
+                    
+                    URL.revokeObjectURL(url);
+                };
+                img.src = url;
+            } catch (error) {
+                alert('Error loading SVG. Make sure logo.svg exists in assets/ folder.');
+            }
+        }
+        
+        async function downloadAllSizes() {
+            const sizes = [1024, 512, 256, 128, 64, 48, 32, 24, 16];
+            const select = document.getElementById('sizeSelect');
+            
+            for (const size of sizes) {
+                select.value = size;
+                await downloadPNG();
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            alert('All icon sizes downloaded! Save them to the assets/ folder.');
+        }
+    </script>
+</body>
+</html>

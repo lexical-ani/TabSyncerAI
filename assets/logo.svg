@@ -1,0 +1,68 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Rounded square background -->
+  <rect width="1024" height="1024" rx="180" fill="url(#bgGradient)"/>
+  
+  <!-- Main icon group -->
+  <g transform="translate(512, 512)">
+    <!-- Three overlapping panels representing multi-panel interface -->
+    
+    <!-- Back panel -->
+    <rect x="-280" y="-200" width="200" height="280" rx="20" fill="#ffffff" opacity="0.15" filter="url(#shadow)"/>
+    
+    <!-- Middle panel -->
+    <rect x="-100" y="-220" width="200" height="280" rx="20" fill="#ffffff" opacity="0.25" filter="url(#shadow)"/>
+    
+    <!-- Front panel with AI symbol -->
+    <rect x="80" y="-240" width="200" height="280" rx="20" fill="#ffffff" opacity="0.95" filter="url(#shadow)"/>
+    
+    <!-- AI Brain/Network symbol on front panel -->
+    <g transform="translate(180, -100)">
+      <!-- Central node -->
+      <circle cx="0" cy="0" r="18" fill="url(#accentGradient)"/>
+      
+      <!-- Surrounding nodes -->
+      <circle cx="-35" cy="-35" r="12" fill="url(#accentGradient)" opacity="0.8"/>
+      <circle cx="35" cy="-35" r="12" fill="url(#accentGradient)" opacity="0.8"/>
+      <circle cx="-35" cy="35" r="12" fill="url(#accentGradient)" opacity="0.8"/>
+      <circle cx="35" cy="35" r="12" fill="url(#accentGradient)" opacity="0.8"/>
+      
+      <!-- Connection lines -->
+      <line x1="0" y1="0" x2="-35" y2="-35" stroke="url(#accentGradient)" stroke-width="3" opacity="0.6"/>
+      <line x1="0" y1="0" x2="35" y2="-35" stroke="url(#accentGradient)" stroke-width="3" opacity="0.6"/>
+      <line x1="0" y1="0" x2="-35" y2="35" stroke="url(#accentGradient)" stroke-width="3" opacity="0.6"/>
+      <line x1="0" y1="0" x2="35" y2="35" stroke="url(#accentGradient)" stroke-width="3" opacity="0.6"/>
+    </g>
+    
+    <!-- Sync arrows at bottom -->
+    <g transform="translate(0, 180)">
+      <!-- Left arrow -->
+      <path d="M -80 0 L -40 -15 L -40 -5 L 40 -5 L 40 5 L -40 5 L -40 15 Z" fill="#ffffff" opacity="0.9"/>
+      <!-- Right arrow -->
+      <path d="M 80 0 L 40 15 L 40 5 L -40 5 L -40 -5 L 40 -5 L 40 -15 Z" fill="#ffffff" opacity="0.9"/>
+    </g>
+    
+    <!-- Decorative dots for broadcast effect -->
+    <circle cx="-320" cy="-80" r="8" fill="#ffffff" opacity="0.4"/>
+    <circle cx="-340" cy="0" r="6" fill="#ffffff" opacity="0.3"/>
+    <circle cx="-320" cy="80" r="8" fill="#ffffff" opacity="0.4"/>
+    
+    <circle cx="320" cy="-80" r="8" fill="#ffffff" opacity="0.4"/>
+    <circle cx="340" cy="0" r="6" fill="#ffffff" opacity="0.3"/>
+    <circle cx="320" cy="80" r="8" fill="#ffffff" opacity="0.4"/>
+  </g>
+</svg>
