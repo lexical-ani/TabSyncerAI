@@ -24,11 +24,12 @@ jobs:
         run: npm run build:win -- --publish never
         
       - name: List Windows build artifacts
+        shell: pwsh
         run: |
-          echo "Contents of dist folder:"
-          ls -la dist/ || dir dist\
-          echo "Looking for .exe files:"
-          find dist/ -name "*.exe" || dir dist\*.exe
+          Write-Host "Contents of dist folder:"
+          if (Test-Path "dist") { Get-ChildItem -Path "dist" -Recurse } else { Write-Host "No dist folder found" }
+          Write-Host "Looking for .exe files:"
+          if (Test-Path "dist") { Get-ChildItem -Path "dist" -Filter "*.exe" -Recurse } else { Write-Host "No .exe files found" }
         
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
@@ -59,9 +60,9 @@ jobs:
       - name: List macOS build artifacts
         run: |
           echo "Contents of dist folder:"
-          ls -la dist/
+          if [ -d "dist" ]; then ls -la dist/; else echo "No dist folder found"; fi
           echo "Looking for .dmg and .zip files:"
-          find dist/ -name "*.dmg" -o -name "*.zip"
+          if [ -d "dist" ]; then find dist/ -name "*.dmg" -o -name "*.zip"; else echo "No files found"; fi
         
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
@@ -93,9 +94,9 @@ jobs:
       - name: List Linux build artifacts
         run: |
           echo "Contents of dist folder:"
-          ls -la dist/
+          if [ -d "dist" ]; then ls -la dist/; else echo "No dist folder found"; fi
           echo "Looking for .AppImage and .deb files:"
-          find dist/ -name "*.AppImage" -o -name "*.deb"
+          if [ -d "dist" ]; then find dist/ -name "*.AppImage" -o -name "*.deb"; else echo "No files found"; fi
         
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
@@ -139,9 +140,9 @@ jobs:
       - name: List all downloaded artifacts
         run: |
           echo "All files in dist:"
-          ls -la dist/ || echo "No dist folder found"
+          if [ -d "dist" ]; then ls -la dist/; else echo "No dist folder found"; fi
           echo "Counting files:"
-          find dist/ -type f | wc -l || echo "No files found"
+          if [ -d "dist" ]; then find dist/ -type f | wc -l; else echo "0"; fi
           
       - name: Create Release
         uses: softprops/action-gh-release@v1
