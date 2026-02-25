@@ -287,6 +287,7 @@
             display: flex;
             gap: 8px;
             margin-top: 8px;
+            align-items: center;
         }
 
         .select-btn {
@@ -317,6 +318,41 @@
             line-height: 1;
             display: flex;
             align-items: center;
+        }
+
+        .btn-fresh-all {
+            font-size: 10px;
+            font-weight: 600;
+            color: #fff;
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+            border: none;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: auto;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-fresh-all:hover {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-fresh-all:active {
+            transform: translateY(0);
+        }
+
+        .btn-fresh-all:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* ──────────────────────────────────────────────────
@@ -882,6 +918,9 @@
             <button class="select-btn" id="selectAll">Select All</button>
             <span class="select-divider">·</span>
             <button class="select-btn" id="selectNone">Deselect All</button>
+            <button class="btn-fresh-all" id="freshAllBtn" title="Start fresh chat in all enabled panels">
+                ✨ Fresh All
+            </button>
         </div>
     </div>
 
@@ -977,6 +1016,7 @@
         const charCountEl = document.getElementById('charCount');
         const selectAllBtn = document.getElementById('selectAll');
         const selectNoneBtn = document.getElementById('selectNone');
+        const freshAllBtn = document.getElementById('freshAllBtn');
 
         // ═══════════════════════════════════════════════════
         // PANEL INFO
@@ -1130,6 +1170,50 @@
         selectNoneBtn.addEventListener('click', () => {
             panels.forEach(p => p.enabled = false);
             window.aiWall.saveConfig({ panels });
+        });
+
+        // Fresh All button - Start fresh chat in all enabled panels
+        freshAllBtn.addEventListener('click', async () => {
+            const enabledPanels = panels.filter(p => p.enabled);
+            
+            if (enabledPanels.length === 0) {
+                addMessage('status', '⚠ No panels enabled. Please enable at least one panel.', { variant: 'error' });
+                return;
+            }
+
+            freshAllBtn.disabled = true;
+            freshAllBtn.textContent = '⏳ Starting...';
+
+            try {
+                let successCount = 0;
+                let failCount = 0;
+
+                for (const panel of enabledPanels) {
+                    try {
+                        const result = await window.aiWall.startFreshChat(panel.id);
+                        if (result.success) {
+                            successCount++;
+                        } else {
+                            failCount++;
+                        }
+                    } catch (err) {
+                        failCount++;
+                        console.error(`Failed to start fresh chat for ${panel.id}:`, err);
+                    }
+                }
+
+                if (successCount > 0) {
+                    addMessage('status', `✓ Fresh chat started in ${successCount} panel(s)`, { variant: 'success' });
+                }
+                if (failCount > 0) {
+                    addMessage('status', `⚠ Failed to start fresh chat in ${failCount} panel(s)`, { variant: 'error' });
+                }
+            } catch (err) {
+                addMessage('status', `✗ Error: ${err.message}`, { variant: 'error' });
+            } finally {
+                freshAllBtn.disabled = false;
+                freshAllBtn.innerHTML = '✨ Fresh All';
+            }
         });
 
         // ═══════════════════════════════════════════════════

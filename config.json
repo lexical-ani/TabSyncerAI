@@ -42,21 +42,21 @@
       "label": "Claude",
       "url": "https://claude.ai",
       "color": "#d97706",
-      "enabled": true
+      "enabled": false
     },
     {
       "id": "mistral",
       "label": "Mistral",
       "url": "https://chat.mistral.ai",
       "color": "#ff6b35",
-      "enabled": true
+      "enabled": false
     },
     {
       "id": "deepseek",
       "label": "DeepSeek",
       "url": "https://chat.deepseek.com",
       "color": "#6c5ce7",
-      "enabled": true
+      "enabled": false
     }
   ]
 }
