@@ -203,7 +203,7 @@
 
     <script>
         let allPanels = [];
-        let scrollState = { scrollOffsetX: 0, actualPanelWidth: 500 };
+        let scrollState = { scrollOffsetX: 0, actualPanelWidth: 500, panelWidthMultipliers: {}, fullscreenPanelId: null };
         let tabsBuilt = false;
 
         const tabsRow = document.getElementById('tabsRow');
@@ -213,9 +213,13 @@
             const enabledPanels = allPanels.filter(p => p.enabled);
             if (enabledPanels.length === 0) return;
 
-            const pW = scrollState.actualPanelWidth || 500;
+            const basePanelWidth = scrollState.actualPanelWidth || 500;
+            const multipliers = scrollState.panelWidthMultipliers || {};
 
             enabledPanels.forEach(panel => {
+                const multiplier = multipliers[panel.id] || 1;
+                const pW = basePanelWidth * multiplier;
+
                 const tab = document.createElement('div');
                 tab.className = 'panel-tab';
                 tab.style.setProperty('--tab-color', panel.color);
@@ -229,12 +233,18 @@
                   </div>
                   <span class="panel-label">${panel.label}</span>
                   <input class="panel-url-input" type="text" value="${panel.url || ''}" spellcheck="false" />
+                  <button class="btn-action btn-fresh" title="Start Fresh Chat">✨</button>
+                  <button class="btn-action btn-2x" title="Double Width">⇔</button>
+                  <button class="btn-action btn-fullscreen" title="Fullscreen">⛶</button>
                   <button class="btn-action btn-reload" title="Reload ${panel.label}">⟳</button>
                 `;
 
                 // Interactive elements inside
                 const btnReload = tab.querySelector('.btn-reload');
                 const btnBack = tab.querySelector('.btn-back');
+                const btnFresh = tab.querySelector('.btn-fresh');
+                const btn2x = tab.querySelector('.btn-2x');
+                const btnFullscreen = tab.querySelector('.btn-fullscreen');
                 const urlInput = tab.querySelector('.panel-url-input');
 
                 // Block drag initiation from these elements
@@ -248,6 +258,24 @@
                 btnBack.addEventListener('click', e => {
                     e.stopPropagation();
                     window.aiWall.navigateBack(panel.id);
+                });
+
+                btnFresh.addEventListener('pointerdown', e => e.stopPropagation());
+                btnFresh.addEventListener('click', e => {
+                    e.stopPropagation();
+                    window.aiWall.startFreshChat(panel.id);
+                });
+
+                btn2x.addEventListener('pointerdown', e => e.stopPropagation());
+                btn2x.addEventListener('click', e => {
+                    e.stopPropagation();
+                    window.aiWall.togglePanelWidth(panel.id);
+                });
+
+                btnFullscreen.addEventListener('pointerdown', e => e.stopPropagation());
+                btnFullscreen.addEventListener('click', e => {
+                    e.stopPropagation();
+                    window.aiWall.toggleFullscreen(panel.id);
                 });
 
                 urlInput.addEventListener('keydown', e => {
@@ -365,10 +393,15 @@
         function updateOffset() {
             if (!tabsBuilt) return;
             const offsetX = scrollState.scrollOffsetX || 0;
-            const pW = scrollState.actualPanelWidth || 500;
+            const basePanelWidth = scrollState.actualPanelWidth || 500;
+            const multipliers = scrollState.panelWidthMultipliers || {};
 
             const tabs = tabsRow.querySelectorAll('.panel-tab');
-            tabs.forEach(t => t.style.width = pW + 'px');
+            tabs.forEach(t => {
+                const panelId = t.dataset.id;
+                const multiplier = multipliers[panelId] || 1;
+                t.style.width = (basePanelWidth * multiplier) + 'px';
+            });
 
             tabsRow.style.transform = `translateX(-${offsetX}px)`;
         }

@@ -27,6 +27,18 @@ contextBridge.exposeInMainWorld('aiWall', {
     navigateUrl: (panelId, url) =>
         ipcRenderer.invoke('navigate-url', panelId, url),
 
+    // Start fresh chat
+    startFreshChat: (panelId) =>
+        ipcRenderer.invoke('start-fresh-chat', panelId),
+
+    // Toggle panel width (1x or 2x)
+    togglePanelWidth: (panelId) =>
+        ipcRenderer.invoke('toggle-panel-width', panelId),
+
+    // Toggle fullscreen mode
+    toggleFullscreen: (panelId) =>
+        ipcRenderer.invoke('toggle-fullscreen', panelId),
+
     // Toggle panel enabled/disabled
     togglePanel: (panelId, enabled) =>
         ipcRenderer.invoke('toggle-panel', panelId, enabled),

@@ -41,6 +41,12 @@ let scrollbarView = null;
 // Scroll state — tracking continuous pixels scrolled horizontally
 let scrollOffsetX = 0;
 
+// Panel width multipliers (1x or 2x)
+let panelWidthMultipliers = {};
+
+// Fullscreen state
+let fullscreenPanelId = null;
+
 // ─── Load Config ─────────────────────────────────────────────────
 function loadConfig() {
   try {
@@ -57,6 +63,14 @@ function loadState() {
   try {
     if (fs.existsSync(STATE_PATH)) {
       state = JSON.parse(fs.readFileSync(STATE_PATH, 'utf-8'));
+      // Load panel width multipliers
+      if (state.panelWidthMultipliers) {
+        panelWidthMultipliers = state.panelWidthMultipliers;
+      }
+      // Load fullscreen state
+      if (state.fullscreenPanelId) {
+        fullscreenPanelId = state.fullscreenPanelId;
+      }
     }
   } catch (err) {
     console.error('[TabSyncerAI] Failed to load state:', err.message);
@@ -75,7 +89,14 @@ function saveState() {
       panelUrls[id] = data.currentUrl || data.config.url;
     }
 
-    state = { windowBounds: bounds, enabledPanels, panelUrls, lastSaved: new Date().toISOString() };
+    state = { 
+      windowBounds: bounds, 
+      enabledPanels, 
+      panelUrls, 
+      panelWidthMultipliers,
+      fullscreenPanelId,
+      lastSaved: new Date().toISOString() 
+    };
 
     // Async save to avoid blocking the main Electron UI thread!
     fs.promises.writeFile(STATE_PATH, JSON.stringify(state, null, 2), 'utf-8')
@@ -95,54 +116,130 @@ function recalculateLayout() {
   const toolbarHeight = 40;
   const scrollbarHeight = 14;
   const availableWidth = winWidth - controlWidth;
-  const fixedPanelWidth = config.panelWidth || 500;
+  const basePanelWidth = config.panelWidth || 500;
 
   // 1. Toolbar — top
   if (toolbarView) {
     toolbarView.setBounds({ x: 0, y: 0, width: availableWidth, height: toolbarHeight });
   }
 
-  // 2. AI Panels — continuous fixed width scroll
+  // 2. AI Panels — continuous fixed width scroll with multipliers and fullscreen support
   const enabledEntries = [...panelViews.entries()].filter(([, d]) => d.enabled);
   const totalEnabled = enabledEntries.length;
 
-  const visibleCount = Math.max(1, Math.floor(availableWidth / fixedPanelWidth));
-
-  const actualPanelWidth = totalEnabled > 0
-    ? Math.floor(availableWidth / Math.min(visibleCount, totalEnabled))
-    : fixedPanelWidth;
-
-  const totalContentWidth = totalEnabled * actualPanelWidth;
-  const maxScroll = Math.max(0, totalContentWidth - availableWidth);
-
-  if (scrollOffsetX > maxScroll) scrollOffsetX = maxScroll;
-  if (scrollOffsetX < 0) scrollOffsetX = 0;
-
-  const panelContentHeight = winHeight - toolbarHeight - scrollbarHeight;
-
-  enabledEntries.forEach(([, data], idx) => {
-    const startX = (idx * actualPanelWidth) - scrollOffsetX;
-    const endX = startX + actualPanelWidth;
-
-    // Is the panel on-screen? (even partially visible)
-    if (startX < availableWidth && endX > 0) {
+  // Fullscreen mode: show only one panel + control panel
+  if (fullscreenPanelId) {
+    const fullscreenEntry = enabledEntries.find(([id]) => id === fullscreenPanelId);
+    
+    if (fullscreenEntry) {
+      const [, data] = fullscreenEntry;
+      const panelContentHeight = winHeight - toolbarHeight - scrollbarHeight;
+      
+      // Show fullscreen panel
       data.view.setBounds({
-        x: Math.round(startX),
+        x: 0,
         y: toolbarHeight,
-        width: actualPanelWidth,
+        width: availableWidth,
         height: panelContentHeight
       });
-    } else {
-      // Keep real dimensions for offscreen panels so injected query selectors 
-      // relying on getBoundingClientRect() > 0 still work!
-      data.view.setBounds({ x: -9999, y: -9999, width: actualPanelWidth, height: panelContentHeight });
+      
+      // Hide all other panels
+      for (const [id, d] of panelViews) {
+        if (id !== fullscreenPanelId) {
+          d.view.setBounds({ x: -9999, y: -9999, width: 0, height: 0 });
+        }
+      }
     }
-  });
+  } else {
+    // Hybrid mode: Dynamic width for 1-4 panels, Fixed width for 5+ panels
+    const enabledCount = enabledEntries.length;
+    
+    if (enabledCount === 0) {
+      // No panels enabled, nothing to show
+      if (scrollbarView) {
+        scrollbarView.setBounds({
+          x: 0,
+          y: winHeight - scrollbarHeight,
+          width: availableWidth,
+          height: scrollbarHeight
+        });
+      }
+      if (controlView) {
+        controlView.setBounds({ x: availableWidth, y: 0, width: controlWidth, height: winHeight });
+      }
+      return;
+    }
 
-  // Hide disabled panels completely
-  for (const [, data] of panelViews) {
-    if (!data.enabled) {
-      data.view.setBounds({ x: -9999, y: -9999, width: 0, height: 0 });
+    let dynamicBaseWidth;
+    let totalContentWidth = 0;
+    const panelWidths = [];
+
+    // Decide between dynamic and fixed width based on panel count
+    if (enabledCount <= 4) {
+      // Dynamic width mode (1-4 panels): Fit to screen
+      let totalMultiplier = 0;
+      enabledEntries.forEach(([id]) => {
+        const multiplier = panelWidthMultipliers[id] || 1;
+        totalMultiplier += multiplier;
+      });
+
+      // Base width is available width divided by total multiplier
+      dynamicBaseWidth = Math.floor(availableWidth / totalMultiplier);
+      
+      enabledEntries.forEach(([id]) => {
+        const multiplier = panelWidthMultipliers[id] || 1;
+        const width = dynamicBaseWidth * multiplier;
+        panelWidths.push(width);
+        totalContentWidth += width;
+      });
+    } else {
+      // Fixed width mode (5+ panels): Enable scrolling
+      const fixedPanelWidth = config.panelWidth || 500;
+      dynamicBaseWidth = fixedPanelWidth;
+      
+      enabledEntries.forEach(([id]) => {
+        const multiplier = panelWidthMultipliers[id] || 1;
+        const width = fixedPanelWidth * multiplier;
+        panelWidths.push(width);
+        totalContentWidth += width;
+      });
+    }
+
+    const maxScroll = Math.max(0, totalContentWidth - availableWidth);
+
+    if (scrollOffsetX > maxScroll) scrollOffsetX = maxScroll;
+    if (scrollOffsetX < 0) scrollOffsetX = 0;
+
+    const panelContentHeight = winHeight - toolbarHeight - scrollbarHeight;
+
+    let currentX = -scrollOffsetX;
+    
+    enabledEntries.forEach(([id, data], idx) => {
+      const panelWidth = panelWidths[idx];
+      const startX = currentX;
+      const endX = startX + panelWidth;
+
+      // Is the panel on-screen? (even partially visible)
+      if (startX < availableWidth && endX > 0) {
+        data.view.setBounds({
+          x: Math.round(startX),
+          y: toolbarHeight,
+          width: panelWidth,
+          height: panelContentHeight
+        });
+      } else {
+        // Keep real dimensions for offscreen panels
+        data.view.setBounds({ x: -9999, y: -9999, width: panelWidth, height: panelContentHeight });
+      }
+      
+      currentX += panelWidth;
+    });
+
+    // Hide disabled panels completely
+    for (const [, data] of panelViews) {
+      if (!data.enabled) {
+        data.view.setBounds({ x: -9999, y: -9999, width: 0, height: 0 });
+      }
     }
   }
 
@@ -172,21 +269,60 @@ function getScrollState() {
   const availableWidth = mainWindow
     ? mainWindow.getContentBounds().width - (config.controlPanelWidth || 340)
     : 1920;
-  const fixedPanelWidth = config.panelWidth || 500;
-  const visibleCount = Math.max(1, Math.floor(availableWidth / fixedPanelWidth));
-  const actualPanelWidth = totalEnabled > 0
-    ? Math.floor(availableWidth / Math.min(visibleCount, totalEnabled))
-    : fixedPanelWidth;
-  const totalContentWidth = totalEnabled * actualPanelWidth;
+  
+  if (totalEnabled === 0) {
+    return {
+      scrollOffsetX: 0,
+      maxScroll: 0,
+      actualPanelWidth: availableWidth,
+      availableWidth,
+      totalContentWidth: 0,
+      totalEnabled: 0,
+      panelWidthMultipliers,
+      fullscreenPanelId
+    };
+  }
+
+  let dynamicBaseWidth;
+  let totalContentWidth = 0;
+
+  // Hybrid mode: Dynamic for 1-4 panels, Fixed for 5+ panels
+  if (totalEnabled <= 4) {
+    // Dynamic width mode
+    let totalMultiplier = 0;
+    enabledEntries.forEach(([id]) => {
+      const multiplier = panelWidthMultipliers[id] || 1;
+      totalMultiplier += multiplier;
+    });
+
+    dynamicBaseWidth = Math.floor(availableWidth / totalMultiplier);
+    
+    enabledEntries.forEach(([id]) => {
+      const multiplier = panelWidthMultipliers[id] || 1;
+      totalContentWidth += dynamicBaseWidth * multiplier;
+    });
+  } else {
+    // Fixed width mode
+    const fixedPanelWidth = config.panelWidth || 500;
+    dynamicBaseWidth = fixedPanelWidth;
+    
+    enabledEntries.forEach(([id]) => {
+      const multiplier = panelWidthMultipliers[id] || 1;
+      totalContentWidth += fixedPanelWidth * multiplier;
+    });
+  }
+  
   const maxScroll = Math.max(0, totalContentWidth - availableWidth);
 
   return {
     scrollOffsetX,
     maxScroll,
-    actualPanelWidth,
+    actualPanelWidth: dynamicBaseWidth,
     availableWidth,
     totalContentWidth,
-    totalEnabled
+    totalEnabled,
+    panelWidthMultipliers,
+    fullscreenPanelId
   };
 }
 
@@ -444,6 +580,53 @@ ipcMain.handle('navigate-url', (_e, panelId, url) => {
     }
     d.view.webContents.loadURL(cleanUrl).catch(err => console.error(err));
   }
+});
+
+ipcMain.handle('start-fresh-chat', (_e, panelId) => {
+  const d = panelViews.get(panelId);
+  if (!d) return { success: false, error: 'Panel not found' };
+  
+  // Panel-specific fresh chat URLs
+  const freshChatUrls = {
+    'gemini': 'https://gemini.google.com/app',
+    'chatgpt': 'https://chatgpt.com/',
+    'grok': 'https://grok.x.ai',
+    'copilot': 'https://copilot.microsoft.com',
+    'perplexity': 'https://www.perplexity.ai',
+    'claude': 'https://claude.ai/new',
+    'mistral': 'https://chat.mistral.ai/chat',
+    'deepseek': 'https://chat.deepseek.com'
+  };
+  
+  const freshUrl = freshChatUrls[panelId] || d.config.url;
+  d.view.webContents.loadURL(freshUrl).catch(err => console.error(err));
+  
+  return { success: true };
+});
+
+ipcMain.handle('toggle-panel-width', (_e, panelId) => {
+  const currentMultiplier = panelWidthMultipliers[panelId] || 1;
+  panelWidthMultipliers[panelId] = currentMultiplier === 1 ? 2 : 1;
+  
+  recalculateLayout();
+  saveState();
+  
+  return { success: true, multiplier: panelWidthMultipliers[panelId] };
+});
+
+ipcMain.handle('toggle-fullscreen', (_e, panelId) => {
+  if (fullscreenPanelId === panelId) {
+    // Exit fullscreen
+    fullscreenPanelId = null;
+  } else {
+    // Enter fullscreen
+    fullscreenPanelId = panelId;
+  }
+  
+  recalculateLayout();
+  saveState();
+  
+  return { success: true, fullscreenPanelId };
 });
 
 ipcMain.handle('toggle-panel', (_e, panelId, enabled) => {
